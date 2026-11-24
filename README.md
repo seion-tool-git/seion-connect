@@ -20,13 +20,23 @@
 1. GitHub CLI（gh）が無ければ、GitHub 公式のリリースから入れる（管理者権限は不要）:
    - `https://api.github.com/repos/cli/cli/releases/latest` から macOS 用の zip（名前に `macOS_universal` か `macOS_arm64` を含むもの）を取得し、
      `~/.local/gh/` に展開して `~/.local/bin/gh` にリンクする。以降 gh はこのパスで呼ぶ。
-2. GitHub のアカウントがあるか聞く:「GitHub のアカウントはありますか？（招待メールから作った場合も含みます）」
-   - いいえ → 「招待メールのリンク、または github.com/signup からアカウントを作ってください。メールアドレス・パスワードはご自身で入力してください。できたら教えてください」
-3. ログイン: `~/.local/bin/gh auth login --web --hostname github.com --git-protocol https` を実行する。
-   - 表示された 8 桁のコードを相手に大きく伝え、「ブラウザで GitHub のページが開きます。このコードを入れて『Authorize』を押してください。できましたか？」と聞く。
+**ブラウザ**: アカウント作成とログインの許可は、**同じブラウザ**で行う（別のブラウザだとログインし直しになる）。
+Claude アプリの内蔵ブラウザ（Browser pane のツール）が使えればそれを使い、使えなければ普段のブラウザを使う。
+
+2. GitHub のアカウントがあるか聞く:「GitHub のアカウントはありますか？」
+   - いいえ → ブラウザで `https://github.com/signup` を開き、
+     「GitHub の登録画面を開きました。**招待メールが届いたのと同じメールアドレス**で登録してください（Google アカウントで登録しても OK）。
+     メールアドレス・パスワード・確認コード・パズルはご自身で入力してください。登録できましたか？」と聞く。
+     Claude は入力欄に何も入れない。プランを聞かれたら Free、アンケートは飛ばしてよいと伝える。
+   - 2 段階認証の設定を求められたら、画面に沿って設定してもらう（スマホのアプリなど）。
+3. ログイン: `GH_BROWSER=true ~/.local/bin/gh auth login --web --hostname github.com --git-protocol https < /dev/null` をバックグラウンドで実行し、出力の 8 桁のコード（`XXXX-XXXX`）を読む。
+   - 手順 2 と同じブラウザで `https://github.com/login/device` を開き、コードを相手に大きく伝えて
+     「このコードを入れて Continue、次の画面で緑の『Authorize github』を押してください。押せましたか？」と聞く。
+     コードの入力と Authorize は相手が行う。
    - 終わったら `~/.local/bin/gh auth setup-git` を実行する。
 4. 組織への招待を受ける: `~/.local/bin/gh api -X PATCH user/memberships/orgs/seion-tool-git -f state=active`
-   - 失敗（招待が見つからない）したら「招待がまだ届いていないようです。管理している人に、GitHub への招待をお願いしてください」と伝えて止める。
+   - 失敗（招待が見つからない）したら、まず「招待メールと違うメールアドレスで登録した可能性があります。招待メールの『Join』ボタンを、いまのブラウザで押してもらえますか？」と聞いてもう一度試す。
+   - それでも失敗したら「招待がまだ届いていないようです。管理している人に、GitHub への招待をお願いしてください」と伝えて止める。
 
 ## 3. キットを取り込む
 1. `git clone https://github.com/seion-tool-git/seion-kit.git ~/seion-kit`（既にあれば `git -C ~/seion-kit pull`）
